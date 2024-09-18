@@ -1,0 +1,45 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class ApiTest {
+
+    @Test
+    public void addNewDeviceTest() {
+        String requestBody = "{\n" +
+                "   \"name\": \"Apple Max Pro 1TB\",\n" +
+                "   \"data\": {\n" +
+                "      \"year\": 2023,\n" +
+                "      \"price\": 7999.99,\n" +
+                "      \"CPU model\": \"Apple ARM A7\",\n" +
+                "      \"Hard disk size\": \"1 TB\"\n" +
+                "   }\n" +
+                "}";
+
+        // Send POST request to add a new device
+        Response response = RestAssured
+                .given()
+                .header("Content-Type", "application/json")
+                .body(requestBody)
+                .post("https://api.restful-api.dev/objects");
+
+        // Assert status code is 201 (created)
+        Assert.assertEquals(response.getStatusCode(), 201);
+
+        // Extract and validate response body
+        String id = response.jsonPath().getString("id");
+        String name = response.jsonPath().getString("name");
+        String createdAt = response.jsonPath().getString("createdAt");
+
+        Assert.assertNotNull(id, "ID should not be null");
+        Assert.assertNotNull(createdAt, "CreatedAt should not be null");
+        Assert.assertEquals(name, "Apple Max Pro 1TB");
+
+        // Validate additional fields
+        int year = response.jsonPath().getInt("data.year");
+        double price = response.jsonPath().getDouble("data.price");
+        Assert.assertEquals(year, 2023);
+        Assert.assertEquals(price, 7999.99);
+    }
+}
